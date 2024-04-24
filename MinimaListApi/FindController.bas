@@ -4,8 +4,6 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
-' Api Controller
-' Version 1.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -30,8 +28,16 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	HRM.Initialize
 End Sub
 
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
+End Sub
+
 Private Sub ReturnApiResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
+End Sub
+
+Private Sub ReturnMethodNotAllow
+	WebApiUtils.ReturnMethodNotAllow(Response)
 End Sub
 
 ' Api Router
@@ -60,7 +66,7 @@ Public Sub RouteApi
 			RouteGet
 		Case Else
 			Log("Unsupported method: " & Method)
-			WebApiUtils.ReturnMethodNotAllow(Response)
+			ReturnMethodNotAllow
 	End Select
 End Sub
 
@@ -80,7 +86,7 @@ Private Sub RouteGet
 					End Select					
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 Private Sub GetFindCategory (keyword As String, value As String)

@@ -1,6 +1,6 @@
 # minimalist-api-b4j
 
-Version: 2.05
+Version: 2.06
 
 Build REST API Server with MinimaList Using B4X Template
 
@@ -18,6 +18,9 @@ Build REST API Server with MinimaList Using B4X Template
 - **MinimaList** is a library for storing key-value or Map into List.
 - This API server can run without an SQL database.
 - Optionally, MinimaList can be persisted using KeyValueStore library.
+- Clients
+	- Build-in front-end client (web)
+	- Compatible with Web API Client (1.05).b4xtemplate (B4X UI apps)
 
 ### Code Example
 ```basic
@@ -36,6 +39,8 @@ Private Sub GetCategory (id As Long)
 	ReturnApiResponse
 End Sub
 ```
+To seed dummy data in MinimaList API Server, browse to:
+http://127.0.0.1:19800/web/?seed=1
 
 **Support this project**
 

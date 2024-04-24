@@ -4,8 +4,6 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
-' Web Controller
-' Version 1.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -39,7 +37,7 @@ Public Sub Show
 	Else
 		strJSFile = "webapi.search.js"
 	End If
-	strScripts = $"<script src="${Main.ROOT_URL}/assets/js/${strJSFile}"></script>"$
+	strScripts = $"<script src="${Main.Config.Get("ROOT_URL")}/assets/js/${strJSFile}"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHTML(strMain, Response)
 End Sub
@@ -120,5 +118,5 @@ Public Sub SeedData
 		Main.ProductList.Add(M2)
 		If Main.KVS_ENABLED Then Main.WriteKVS("ProductList", Main.ProductList)
 	End If
-	WebApiUtils.ReturnLocation(Main.ROOT_PATH, Response)
+	WebApiUtils.ReturnLocation(Main.Config.Get("ROOT_PATH"), Response)
 End Sub

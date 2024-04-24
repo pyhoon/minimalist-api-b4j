@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Web Handler class
-' Version 2.05
+' Version 2.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -61,7 +61,7 @@ Private Sub ProcessRequest
 	Dim ControllerElement As String = Elements(ControllerIndex)
 	Select ControllerElement
 		Case "categories"
-			Dim Categories As CategoryController
+			Dim Categories As CategoriesController
 			Categories.Initialize(Request, Response)
 			Categories.RouteWeb
 			Return

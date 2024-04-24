@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Api Handler class
-' Version 2.05
+' Version 2.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -62,12 +62,12 @@ Private Sub ProcessRequest
 	Dim ControllerElement As String = Elements(ControllerIndex)
 	Select ControllerElement
 		Case "categories"
-			Dim Categories As CategoryController
+			Dim Categories As CategoriesController
 			Categories.Initialize(Request, Response)
 			Categories.RouteApi
 			Return
 		Case "products"
-			Dim Products As ProductController
+			Dim Products As ProductsController
 			Products.Initialize(Request, Response)
 			Products.RouteApi
 			Return
