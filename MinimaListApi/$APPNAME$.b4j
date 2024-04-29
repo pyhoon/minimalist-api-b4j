@@ -28,7 +28,7 @@ NumberOfModules=10
 Version=10
 @EndOfDesignText@
 ' Product: 			MinimaList API Server
-' Version: 			2.06
+' Version: 			2.07
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			Open Source
@@ -53,17 +53,18 @@ Sub Process_Globals
 	Public KVS 						As KeyValueStore
 	Public KVS_ENABLED 				As Boolean
 	Public PRINT_FULL_REQUEST_URL	As Boolean
+	Public SHOW_API_ICON			As Boolean
 	Public SESSIONS_ENABLED 		As Boolean
 	Public COOKIES_ENABLED 			As Boolean
 	Public COOKIES_EXPIRATION 		As Long
-	Public Const VERSION 			As String = "2.06"
+	Public Const VERSION 			As String = "2.07"
 	'Public Const PREFIX 			As String = "MinimaList_API_v2_" ' use for cookies and sessions
 	
 	' ==============================================
 	' Declare MinimaList variables here
 	' ==============================================
-	Public CategoryList 			As MinimaList
-	Public ProductList 				As MinimaList
+	Public CategoriesList 			As MinimaList
+	Public ProductsList 			As MinimaList
 	' ==============================================
 End Sub
 
@@ -73,68 +74,60 @@ Sub AppStart (Args() As String)
 	Config.Initialize
 	SimpleResponse.Initialize
 	
-	' Read environment settings
-	If Not(File.Exists(File.DirApp, "config.ini")) Then
-		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
-	End If
-	Config = WebApiUtils.ReadMapFile(File.DirApp, "config.ini")
-	Config.Put("VERSION", VERSION)
-	'Config.Put("PREFIX", PREFIX)
-	
-	Dim sv As ServerConfiguration
-	sv.Initialize
-	'sv.ServerPort 				= 19800
-	'sv.SSLPort 				= 0
-	'sv.RootUrl					= "http://127.0.0.1"
-	'sv.RootPath				= "web"
-	'sv.EnableSSL 				= False
-	sv.EnableCORS 				= True
-	'sv.EnableSessions 			= False
-	'sv.EnableCookies 			= False
-	'sv.CookiesExpiration 		= 90 * 24 * 60 * 60 ' 90 days
-	'sv.AllowStaticFiles		= True
-	sv.StaticFilesFolder		= File.Combine(File.DirApp, "www")
-	'sv.BasicAuthentication 	= False
-	'sv.JsonWebToken 			= False
-	'sv.SimpleResponse			= False
-	'sv.SimpleResponseFormat	= "Auto"
-	'sv.SimpleResponseDataKey 	= "data"
-	sv.Update
-	sv.ShowWelcomeText
-	
-	' Start the server
+	Dim sc As ServerConfiguration
+	sc.Initialize
+	sc.ServerPort = 8080
+	sc.SimpleResponse.Enable = True
+	sc.SimpleResponse.Format = "Auto"
+	sc.EnableCORS = True
+	sc.EnableHelp = True
+	sc.Finalize
+	sc.ShowWelcomeText
+
 	Server.Start
 	
-	' ===========================
-	' List of all MinimaLists
-	' ===========================
-	CategoryList.Initialize
-	ProductList.Initialize
-	
-	' ============================================================================
-	' If this is disabled, all MinimaList data will be reset when server restarts
-	' ============================================================================
-	' Initialize KeyValueStore
-	KVS.Initialize(File.DirApp, "kvs.dat")
-	' Load values
-	CategoryList.List = KVS.GetDefault("CategoryList", CategoryList.List)
-	ProductList.List = KVS.GetDefault("ProductList", ProductList.List)
-	KVS_ENABLED = True
-	Log("KeyValueStore is enabled")
-	
-	' Show Controllers in Documentation
-	' If HelpHandler is used, controller class added here will be displayed on the documentation page
-	' Tips: You can be hide some APIs using #Hide keyword
-	Controllers.Initialize
-	Controllers.Add("CategoriesController")
-	Controllers.Add("ProductsController")
-	Controllers.Add("FindController")
-	
+	ConfigureMinimaList
+	ConfigureControllers
+	ConfigureKeyValueStores
+
 	PRINT_FULL_REQUEST_URL = True
 	StartMessageLoop
 End Sub
 
+Private Sub ConfigureMinimaList
+	' ===========================
+	' List of all MinimaLists
+	' ===========================
+	CategoriesList.Initialize
+	ProductsList.Initialize
+End Sub
+
+' Show Controllers in Documentation
+Private Sub ConfigureControllers
+	Controllers.Initialize
+	Controllers.Add("CategoriesController")
+	Controllers.Add("ProductsController")
+	Controllers.Add("FindController")
+End Sub
+
+' Enable KeyValueStores
+' ============================================================================
+' If this is disabled, all MinimaList data will be reset when server restarts
+' ============================================================================
+Private Sub ConfigureKeyValueStores
+	' Initialize KeyValueStore
+	KVS.Initialize(File.DirApp, "kvs.dat")
+	
+	' Load values if existed
+	CategoriesList.List = KVS.GetDefault("CategoriesList", CategoriesList.List)
+	ProductsList.List = KVS.GetDefault("ProductsList", ProductsList.List)
+
+	KVS_ENABLED = True
+	Log("KeyValueStore is enabled")
+End Sub
+
 ' Write MinimaList to KeyValueStore
 Public Sub WriteKVS (List As String, M As MinimaList)
+	If Not(KVS_ENABLED) Then Return
 	KVS.Put(List, M.List)
 End Sub

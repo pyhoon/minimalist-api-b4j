@@ -4,6 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
+' MinimaList Controller
+' Version 1.07
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -33,6 +35,7 @@ Private Sub ReturnBadRequest
 End Sub
 
 Private Sub ReturnApiResponse
+	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
@@ -40,7 +43,16 @@ Private Sub ReturnMethodNotAllow
 	WebApiUtils.ReturnMethodNotAllow(Response)
 End Sub
 
-' Api Router
+Private Sub ReturnInvalidKeywordValue
+	HRM.ResponseCode = 400
+	HRM.ResponseError = "Invalid keyword value"
+	ReturnApiResponse
+End Sub
+
+Private Sub ReturnErrorUnprocessableEntity
+	WebApiUtils.ReturnErrorUnprocessableEntity(Response)
+End Sub
+
 Public Sub RouteApi
 	Method = Request.Method.ToUpperCase
 	Elements = WebApiUtils.GetUriElements(Request.RequestURI)
@@ -98,14 +110,13 @@ Private Sub GetFindCategory (keyword As String, value As String)
 	L1.Initialize
 	Select keyword
 		Case "category_name", "name"
-			L1 = Main.CategoryList.FindAll(Array("category_name"), Array As String(value))
+			L1 = Main.CategoriesList.FindAll(Array("category_name"), Array As String(value))
 			HRM.ResponseCode = 200
 			HRM.ResponseData = L1
+			ReturnApiResponse
 		Case Else
-			HRM.ResponseCode = 400
-			HRM.ResponseError = "Invalid keyword value"
+			ReturnInvalidKeywordValue
 	End Select
-	ReturnApiResponse
 End Sub
 
 Private Sub GetFindProduct (keyword As String, value As String)
@@ -119,39 +130,44 @@ Private Sub GetFindProduct (keyword As String, value As String)
 		Case "id"
 			If IsNumber(value) Then
 				Dim id As Long = value
-				Dim M1 As Map = Main.ProductList.Find(id)
+				Dim M1 As Map = Main.ProductsList.Find(id)
 				If M1.IsInitialized And M1.Size > 0 Then L1.Add(M1)
 				HRM.ResponseCode = 200
+				HRM.ResponseData = L1
+				ReturnApiResponse
 			Else
-				HRM.ResponseCode = 422
-				HRM.ResponseError = "Error Unprocessable Entity"
+				ReturnErrorUnprocessableEntity
 			End If
 		Case "category_id", "cid", "catid"
 			If IsNumber(value) Then
 				Dim cid As Long = value
-				L1 = Main.ProductList.FindAll(Array("category_id"), Array As Long(cid))
+				L1 = Main.ProductsList.FindAll(Array("category_id"), Array As Long(cid))
 				HRM.ResponseCode = 200
+				HRM.ResponseData = L1
+				ReturnApiResponse				
 			Else
-				HRM.ResponseCode = 422
-				HRM.ResponseError = "Error Unprocessable Entity"
+				ReturnErrorUnprocessableEntity
 			End If
 		Case "product_code", "code"
-			L1 = Main.ProductList.FindAll(Array("product_code"), Array As String(value))
+			L1 = Main.ProductsList.FindAll(Array("product_code"), Array As String(value))
 			HRM.ResponseCode = 200
+			HRM.ResponseData = L1
+			ReturnApiResponse
 		Case "category_name", "category"
-			Dim C1 As Map = Main.CategoryList.FindFirst(Array("category_name"), Array As String(value))
+			Dim C1 As Map = Main.CategoriesList.FindFirst(Array("category_name"), Array As String(value))
 			If C1.IsInitialized And C1.Size > 0 Then
 				Dim cid As Long = C1.Get("id")
-				L1 = Main.ProductList.FindAll(Array("category_id"), Array As Long(cid))
+				L1 = Main.ProductsList.FindAll(Array("category_id"), Array As Long(cid))
 			End If
 			HRM.ResponseCode = 200
+			HRM.ResponseData = L1
+			ReturnApiResponse
 		Case "product_name", "name"
-			L1 = Main.ProductList.FindAnyLike(Array("product_name"), Array As String(value))
+			L1 = Main.ProductsList.FindAnyLike(Array("product_name"), Array As String(value))
 			HRM.ResponseCode = 200
+			HRM.ResponseData = L1
+			ReturnApiResponse
 		Case Else
-			HRM.ResponseCode = 400
-			HRM.ResponseError = "Invalid keyword value"
+			ReturnInvalidKeywordValue
 	End Select
-	HRM.ResponseData = L1
-	ReturnApiResponse
 End Sub

@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.06
+' Version 2.07
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -50,6 +50,7 @@ Private Sub ShowHelpPage
 	'	' Append csrf_token into page header. Comment this line to check
 	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	'End If
+	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 	If Main.SimpleResponse.Enable Then
 		strJSFile = "webapi.help.verb.simple.js"
@@ -141,7 +142,7 @@ Public Sub ReadControllers (FileDir As String) As String
 										End If
 										key.Add(Line2)
 
-										Dim MethodProperties As Map = CreateMap("Verb": verb, "Method": Line2, "Args": Arguments, "Prm": plist, "Body": "&nbsp;", "File": False, "Format": "")
+										Dim MethodProperties As Map = CreateMap("Verb": verb, "Method": Line2, "Args": Arguments, "Prm": plist, "Body": "&nbsp;", "File": False, "Plural": False, "Format": "")
 										Methods.Add(MethodProperties)
 									Next
 								End If
@@ -280,7 +281,7 @@ Public Sub ReadControllers (FileDir As String) As String
 		'		Log(pm(0).Trim & " [" & pm(1).Trim & "]")
 		'	Next
 		'	Log("Hide: " & m.Get("Hide"))
-		'	Log("Name: " & m.Get("Name"))
+		'	Log("Plural: " & m.Get("Plural"))
 		'	Log("Elements: " & m.Get("Elements"))
 		'	Log("Version: " & m.Get("Version"))
 		'	Log("Format: " & m.Get("Format"))

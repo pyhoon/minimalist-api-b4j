@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Web Handler class
-' Version 2.06
+' Version 2.07
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -26,10 +26,15 @@ Private Sub ElementLastIndex As Int
 	Return Elements.Length - 1
 End Sub
 
+Private Sub ReturnHtmlPageNotFound
+	WebApiUtils.ReturnHtmlPageNotFound(Response)
+End Sub
+
 Private Sub ProcessRequest
 	If Main.PRINT_FULL_REQUEST_URL Then
 		Log($"${Request.Method}: ${Request.FullRequestURI}"$)
 	End If
+	
 	Elements = WebApiUtils.GetUriElements(Request.RequestURI)
 	
 	' Handle /web/
@@ -66,6 +71,6 @@ Private Sub ProcessRequest
 			Categories.RouteWeb
 			Return
 	End Select
-
-	WebApiUtils.ReturnHtmlPageNotFound(Response)
+	Log("Unknown url: " & Request.FullRequestURI)
+	ReturnHtmlPageNotFound
 End Sub

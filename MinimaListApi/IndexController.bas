@@ -4,6 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
+' MinimaList Controller
+' Version 1.07
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -17,16 +19,27 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 End Sub
 
 Private Sub ReturnApiResponse
+	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
 Public Sub Show
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strView As String = WebApiUtils.ReadTextFile("index.html")
+	Dim strHelp As String
 	Dim strJSFile As String
 	Dim strScripts As String
 	
+	If Main.SHOW_API_ICON Then
+		strHelp = $"        <li class="nav-item">
+          <a class="nav-link mr-3 font-weight-bold text-white" href="${Main.Config.Get("ROOT_URL")}${Main.Config.Get("ROOT_PATH")}help"><i class="fas fa-cog" title="API"></i> API</a>
+	</li>"$
+	Else
+		strHelp = ""
+	End If
+
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
+	strMain = WebApiUtils.BuildTag(strMain, "HELP", strHelp)
 	strMain = WebApiUtils.BuildHtml(strMain, Main.config)
 	If Main.SimpleResponse.Enable Then
 		If Main.SimpleResponse.Format = "Map" Then
@@ -45,10 +58,10 @@ End Sub
 Public Sub GetSearch
 	Dim CombineList As List
 	CombineList.Initialize
-	Dim L1 As List = Main.ProductList.CopyList
+	Dim L1 As List = Main.ProductsList.CopyList
 	For Each M1 As Map In L1
 		Dim catid As Long = M1.Get("category_id")
-		Dim category_name As String = Main.CategoryList.Find(catid).Get("category_name")
+		Dim category_name As String = Main.CategoriesList.Find(catid).Get("category_name")
 		M1.Put("category_name", category_name)
 		CombineList.Add(M1)
 	Next
@@ -60,10 +73,10 @@ End Sub
 Public Sub PostSearch
 	Dim CombineList As List
 	CombineList.Initialize
-	Dim L1 As List = Main.ProductList.CopyList
+	Dim L1 As List = Main.ProductsList.CopyList
 	For Each M1 As Map In L1
 		Dim catid As Long = M1.Get("category_id")
-		Dim category_name As String = Main.CategoryList.Find(catid).Get("category_name")
+		Dim category_name As String = Main.CategoriesList.Find(catid).Get("category_name")
 		M1.Put("category_name", category_name)
 		CombineList.Add(M1)
 	Next
@@ -89,34 +102,34 @@ End Sub
 
 ' Seed some dummy data into MimimaList
 Public Sub SeedData
-	If Main.CategoryList.List.Size = 0 Then
+	If Main.CategoriesList.List.Size = 0 Then
 		Dim M1 As Map = CreateMap("category_name": "Hardwares", "created_date": WebApiUtils.CurrentDateTime)
-		Main.CategoryList.Add(M1)
+		Main.CategoriesList.Add(M1)
 		Dim M1 As Map = CreateMap("category_name": "Toys", "created_date": WebApiUtils.CurrentDateTime)
-		Main.CategoryList.Add(M1)
-		If Main.KVS_ENABLED Then Main.WriteKVS("CategoryList", Main.CategoryList)
+		Main.CategoriesList.Add(M1)
+		Main.WriteKVS("CategoriesList", Main.CategoriesList)
 	End If
 
-	If Main.ProductList.List.Size = 0 Then
+	If Main.ProductsList.List.Size = 0 Then
 		Dim M2 As Map = CreateMap("category_id": 2, _
 		"product_code": "T001", _
 		"product_name": "Teddy Bear", _
 		"product_price": 99.9, _
 		"created_date": WebApiUtils.CurrentDateTime)
-		Main.ProductList.Add(M2)
+		Main.ProductsList.Add(M2)
 		Dim M2 As Map = CreateMap("category_id": 1, _
 		"product_code": "H001", _
 		"product_name": "Hammer", _
 		"product_price": 15.75, _
 		"created_date": WebApiUtils.CurrentDateTime)
-		Main.ProductList.Add(M2)
+		Main.ProductsList.Add(M2)
 		Dim M2 As Map = CreateMap("category_id": 2, _
 		"product_code": "T002", _
 		"product_name": "Optimus Prime", _
 		"product_price": 1000, _
 		"created_date": WebApiUtils.CurrentDateTime)
-		Main.ProductList.Add(M2)
-		If Main.KVS_ENABLED Then Main.WriteKVS("ProductList", Main.ProductList)
+		Main.ProductsList.Add(M2)
+		Main.WriteKVS("ProductsList", Main.ProductsList)
 	End If
 	WebApiUtils.ReturnLocation(Main.Config.Get("ROOT_PATH"), Response)
 End Sub

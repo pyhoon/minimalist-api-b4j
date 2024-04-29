@@ -1,5 +1,5 @@
 # Product:      MinimaList API Server
-# Version:      2.06
+# Version:      2.07
 # Developer:    Aeric Poon
 # License:      Donationware
 # Paypal:       https://paypal.me/aeric80/
@@ -15,7 +15,7 @@
 HOME_TITLE=MINIMALIST API SERVER
 APP_TITLE=MinimaList API Server
 APP_TRADEMARK=B4X
-APP_COPYRIGHT=Copyright Computerise System Solutions 2023
+APP_COPYRIGHT=Copyright Computerise System Solutions 2024
 
 # Server Path
 ROOT_URL=http://127.0.0.1

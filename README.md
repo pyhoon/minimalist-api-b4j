@@ -1,8 +1,8 @@
 # minimalist-api-b4j
 
-Version: 2.06
+Version: 2.07
 
-Build REST API Server with MinimaList Using B4X Template
+Build REST API Server with MinimaList using B4X project template
 
 ---
 

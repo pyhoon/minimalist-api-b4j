@@ -4,6 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
+' MinimaList Controller
+' Version 1.07
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -29,6 +31,7 @@ Private Sub ReturnBadRequest
 End Sub
 
 Private Sub ReturnApiResponse
+	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
@@ -164,7 +167,7 @@ Private Sub GetCategories
 	' #Desc = Read all Categories
 	
 	HRM.ResponseCode = 200
-	HRM.ResponseData = Main.CategoryList.List
+	HRM.ResponseData = Main.CategoriesList.List
 	ReturnApiResponse
 End Sub
 
@@ -173,7 +176,7 @@ Private Sub GetCategory (id As Long)
 	' #Desc = Read one Category by id
 	' #Elements = [":id"]
 	
-	Dim M1 As Map = Main.CategoryList.Find(id)
+	Dim M1 As Map = Main.CategoriesList.Find(id)
 	If M1.Size > 0 Then
 		HRM.ResponseCode = 200
 	Else
@@ -192,31 +195,42 @@ Private Sub PostCategory
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
-	Else If data.ContainsKey("") Then
+		ReturnApiResponse
+		Return
+	End If
+	
+	If data.ContainsKey("") Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid key value"
-	Else
-		' Make it compatible with Web API Client v1
-		If data.ContainsKey("name") Then
-			data.Put("category_name", data.Get("name"))
-			data.Remove("name")
-		End If
-		If Main.CategoryList.FindAll(Array("category_name"), Array(data.Get("category_name"))).Size > 0 Then
-			HRM.ResponseCode = 409
-			HRM.ResponseError = "Category Name already exist"
-			ReturnApiResponse
-			Return
-		End If
-		
-		If Not(data.ContainsKey("created_date")) Then
-			data.Put("created_date", WebApiUtils.CurrentDateTime)
-		End If
-		Main.CategoryList.Add(data)
-		HRM.ResponseCode = 201
-		HRM.ResponseMessage = "Category Created"
-		HRM.ResponseObject = Main.CategoryList.Last
-		If Main.KVS_ENABLED Then Main.WriteKVS("CategoryList", Main.CategoryList)
+		ReturnApiResponse
+		Return
 	End If
+	
+	' Make it compatible with Web API Client v1
+	If data.ContainsKey("name") Then
+		data.Put("category_name", data.Get("name"))
+		data.Remove("name")
+	End If
+	
+	' Check conflict Category Name
+	Dim L1 As List = Main.CategoriesList.FindAll(Array("category_name"), Array(data.Get("category_name")))
+	If L1.Size > 0 Then
+		HRM.ResponseCode = 409
+		HRM.ResponseError = "Category Name already exist"
+		ReturnApiResponse
+		Return
+	End If
+		
+	If Not(data.ContainsKey("created_date")) Then
+		data.Put("created_date", WebApiUtils.CurrentDateTime)
+	End If
+		
+	Main.CategoriesList.Add(data)
+	Main.WriteKVS("CategoriesList", Main.CategoriesList)
+		
+	HRM.ResponseCode = 201
+	HRM.ResponseMessage = "Category Created"
+	HRM.ResponseObject = Main.CategoriesList.Last
 	ReturnApiResponse
 End Sub
 
@@ -230,42 +244,54 @@ Private Sub PutCategory (id As Long)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
-	Else
-		If data.ContainsKey("") Then
-			HRM.ResponseCode = 400
-			HRM.ResponseError = "Invalid key value"
-		Else
-			Dim M1 As Map = Main.CategoryList.Find(id)
-			If M1.Size = 0 Then
-				HRM.ResponseCode = 404
-				HRM.ResponseError = "Category not found"
-			Else
-				' Make it compatible with Web API Client v1
-				If data.ContainsKey("name") Then
-					data.Put("category_name", data.Get("name"))
-					data.Remove("name")
-				End If
-				For Each item As Map In Main.CategoryList.FindAll(Array("category_name"), Array(data.Get("category_name")))
-					If id <> item.Get("id") Then
-						HRM.ResponseCode = 409
-						HRM.ResponseError = "Category Name already exist"
-						ReturnApiResponse
-						Return
-					End If
-				Next
-
-				If Not(data.ContainsKey("updated_date")) Then
-					data.Put("updated_date", WebApiUtils.CurrentDateTime)
-				End If
-				For Each Key As String In data.Keys
-					M1.Put(Key, data.Get(Key))
-				Next
-				HRM.ResponseCode = 200
-				HRM.ResponseObject = M1
-				If Main.KVS_ENABLED Then Main.WriteKVS("CategoryList", Main.CategoryList)
-			End If
-		End If
+		ReturnApiResponse
+		Return
 	End If
+	
+	If data.ContainsKey("") Then
+		HRM.ResponseCode = 400
+		HRM.ResponseError = "Invalid key value"
+		ReturnApiResponse
+		Return
+	End If
+	
+	Dim M1 As Map = Main.CategoriesList.Find(id)
+	If M1.Size = 0 Then
+		HRM.ResponseCode = 404
+		HRM.ResponseError = "Id not found"
+		ReturnApiResponse
+		Return
+	End If
+	
+	' Make it compatible with Web API Client v1
+	If data.ContainsKey("name") Then
+		data.Put("category_name", data.Get("name"))
+		data.Remove("name")
+	End If
+	
+	' Check conflict Category Name
+	Dim L1 As List = Main.CategoriesList.FindAll(Array("category_name"), Array(data.Get("category_name")))
+	For Each M As Map In L1
+		If id <> M.Get("id") Then
+			HRM.ResponseCode = 409
+			HRM.ResponseError = "Category Name already exist"
+			ReturnApiResponse
+			Return
+		End If
+	Next
+	
+	If Not(data.ContainsKey("modified_date")) Then
+		data.Put("modified_date", WebApiUtils.CurrentDateTime)
+	End If
+		
+	For Each Key As String In data.Keys
+		M1.Put(Key, data.Get(Key))
+	Next
+	Main.WriteKVS("CategoriesList", Main.CategoriesList)
+				
+	HRM.ResponseCode = 200
+	HRM.ResponseMessage = "Category Updated"
+	HRM.ResponseObject = M1
 	ReturnApiResponse
 End Sub
 
@@ -274,15 +300,19 @@ Private Sub DeleteCategory (id As Long)
 	' #Desc = Delete Category by id
 	' #Elements = [":id"]
 
-	Dim Index As Int = Main.CategoryList.IndexFromId(id)
+	Dim Index As Int = Main.CategoriesList.IndexFromId(id)
 	If Index < 0 Then
 		HRM.ResponseCode = 404
-		HRM.ResponseError = "Category not found"
-	Else
-		Main.CategoryList.Remove(Index)
-		HRM.ResponseCode = 200
-		If Main.KVS_ENABLED Then Main.WriteKVS("CategoryList", Main.CategoryList)
+		HRM.ResponseError = "Id not found"
+		ReturnApiResponse
+		Return
 	End If
+	
+	Main.CategoriesList.Remove(Index)
+	Main.WriteKVS("CategoriesList", Main.CategoriesList)
+	
+	HRM.ResponseCode = 200
+	HRM.ResponseMessage = "Category Deleted"
 	ReturnApiResponse
 End Sub
 
@@ -290,10 +320,20 @@ End Sub
 Private Sub ShowPage
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strView As String = WebApiUtils.ReadTextFile("category.html")
+	Dim strHelp As String
 	Dim strJSFile As String
 	Dim strScripts As String
 	
+	If Main.SHOW_API_ICON Then
+		strHelp = $"        <li class="nav-item">
+          <a class="nav-link mr-3 font-weight-bold text-white" href="${Main.Config.Get("ROOT_URL")}${Main.Config.Get("ROOT_PATH")}help"><i class="fas fa-cog" title="API"></i> API</a>
+	</li>"$
+	Else
+		strHelp = ""
+	End If
+	
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
+	strMain = WebApiUtils.BuildTag(strMain, "HELP", strHelp)
 	strMain = WebApiUtils.BuildHtml(strMain, Main.config)
 	If Main.SimpleResponse.Enable Then
 		If Main.SimpleResponse.Format = "Map" Then

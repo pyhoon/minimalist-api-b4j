@@ -4,6 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
+' MinimaList Controller
+' Version 1.07
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -29,6 +31,7 @@ Private Sub ReturnBadRequest
 End Sub
 
 Private Sub ReturnApiResponse
+	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
@@ -140,7 +143,7 @@ Private Sub GetProducts
 	' #Desc = Read all Products
 
 	HRM.ResponseCode = 200
-	HRM.ResponseData = Main.ProductList.List
+	HRM.ResponseData = Main.ProductsList.List
 	ReturnApiResponse
 End Sub
 
@@ -150,7 +153,7 @@ Private Sub GetProduct (id As Long)
 	' #Elements = [":id"]
 
 	HRM.ResponseCode = 200
-	HRM.ResponseObject = Main.ProductList.Find(id)
+	HRM.ResponseObject = Main.ProductsList.Find(id)
 	ReturnApiResponse
 End Sub
 
@@ -163,43 +166,60 @@ Private Sub PostProduct
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
-	Else If data.ContainsKey("") Then
+		ReturnApiResponse
+		Return
+	End If
+	
+	If data.ContainsKey("") Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid key value"
-	Else
-		' Make it compatible with Web API Client v1
-		If data.ContainsKey("cat_id") Then
-			data.Put("category_id", data.Get("cat_id"))
-			data.Remove("cat_id")
-		End If
-		If data.ContainsKey("code") Then
-			data.Put("product_code", data.Get("code"))
-			data.Remove("code")
-		End If
-		If data.ContainsKey("name") Then
-			data.Put("product_name", data.Get("name"))
-			data.Remove("name")
-		End If
-		If data.ContainsKey("price") Then
-			data.Put("product_price", data.Get("price"))
-			data.Remove("price")
-		End If
-		If Main.ProductList.FindAll(Array("product_code"), Array(data.Get("product_code"))).Size > 0 Then
-			HRM.ResponseCode = 409
-			HRM.ResponseError = "Product Code already exist"
-			ReturnApiResponse
-			Return
-		End If
-		
-		If Not(data.ContainsKey("created_date")) Then
-			data.Put("created_date", WebApiUtils.CurrentDateTime)
-		End If
-		Main.ProductList.Add(data)
-		HRM.ResponseCode = 201
-		HRM.ResponseObject = Main.ProductList.Last
-		HRM.ResponseMessage = "Product created"
-		If Main.KVS_ENABLED Then Main.WriteKVS("ProductList", Main.ProductList)
+		ReturnApiResponse
+		Return
 	End If
+	
+	' Make it compatible with Web API Client v1
+	If data.ContainsKey("cat_id") Then
+		data.Put("category_id", data.Get("cat_id"))
+		data.Remove("cat_id")
+	End If
+	
+	If data.ContainsKey("code") Then
+		data.Put("product_code", data.Get("code"))
+		data.Remove("code")
+	End If
+	
+	If data.ContainsKey("name") Then
+		data.Put("product_name", data.Get("name"))
+		data.Remove("name")
+	End If
+	
+	If data.ContainsKey("price") Then
+		data.Put("product_price", data.Get("price"))
+		data.Remove("price")
+	End If
+	If data.ContainsKey("product_price") = False Then
+		data.Put("product_price", 0)
+	End If
+	
+	' Check conflict Product Code
+	Dim L1 As List = Main.ProductsList.FindAll(Array("product_code"), Array(data.Get("product_code")))
+	If L1.Size > 0 Then
+		HRM.ResponseCode = 409
+		HRM.ResponseError = "Product Code already exist"
+		ReturnApiResponse
+		Return
+	End If
+	
+	If Not(data.ContainsKey("created_date")) Then
+		data.Put("created_date", WebApiUtils.CurrentDateTime)
+	End If
+
+	Main.ProductsList.Add(data)
+	Main.WriteKVS("ProductsList", Main.ProductsList)
+		
+	HRM.ResponseCode = 201
+	HRM.ResponseMessage = "Product Created"
+	HRM.ResponseObject = Main.ProductsList.Last
 	ReturnApiResponse
 End Sub
 
@@ -213,54 +233,69 @@ Private Sub PutProduct (id As Long)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
-	Else
-		If data.ContainsKey("") Then
-			HRM.ResponseCode = 400
-			HRM.ResponseError = "Invalid key value"
-		Else
-			Dim M1 As Map = Main.ProductList.Find(id)
-			If M1.Size = 0 Then
-				HRM.ResponseCode = 404
-				HRM.ResponseError = "Data not found"
-			Else
-				' Make it compatible with Web API Client v1
-				If data.ContainsKey("cat_id") Then
-					data.Put("category_id", data.Get("cat_id"))
-					data.Remove("cat_id")
-				End If
-				If data.ContainsKey("code") Then
-					data.Put("product_code", data.Get("code"))
-					data.Remove("code")
-				End If
-				If data.ContainsKey("name") Then
-					data.Put("product_name", data.Get("name"))
-					data.Remove("name")
-				End If
-				If data.ContainsKey("price") Then
-					data.Put("product_price", data.Get("price"))
-					data.Remove("price")
-				End If
-				For Each item As Map In Main.ProductList.FindAll(Array("product_code"), Array(data.Get("product_code")))
-					If id <> item.Get("id") Then
-						HRM.ResponseCode = 409
-						HRM.ResponseError = "Product Code already exist"
-						ReturnApiResponse
-						Return
-					End If
-				Next
-
-				If Not(data.ContainsKey("updated_date")) Then
-					data.Put("updated_date", WebApiUtils.CurrentDateTime)
-				End If
-				For Each Key As String In data.Keys
-					M1.Put(Key, data.Get(Key))
-				Next
-				HRM.ResponseCode = 200
-				HRM.ResponseObject = M1
-				If Main.KVS_ENABLED Then Main.WriteKVS("CategoryList", Main.CategoryList)
-			End If
-		End If
+		ReturnApiResponse
+		Return
 	End If
+	
+	If data.ContainsKey("") Then
+		HRM.ResponseCode = 400
+		HRM.ResponseError = "Invalid key value"
+		ReturnApiResponse
+		Return
+	End If
+	
+	Dim M1 As Map = Main.ProductsList.Find(id)
+	If M1.Size = 0 Then
+		HRM.ResponseCode = 404
+		HRM.ResponseError = "Id not found"
+		ReturnApiResponse
+		Return
+	End If
+	
+	' Make it compatible with Web API Client v1
+	If data.ContainsKey("cat_id") Then
+		data.Put("category_id", data.Get("cat_id"))
+		data.Remove("cat_id")
+	End If
+	
+	If data.ContainsKey("code") Then
+		data.Put("product_code", data.Get("code"))
+		data.Remove("code")
+	End If
+	
+	If data.ContainsKey("name") Then
+		data.Put("product_name", data.Get("name"))
+		data.Remove("name")
+	End If
+	
+	If data.ContainsKey("price") Then
+		data.Put("product_price", data.Get("price"))
+		data.Remove("price")
+	End If
+		
+	' Check conflict Product Code
+	Dim L1 As List = Main.ProductsList.FindAll(Array("product_code"), Array(data.Get("product_code")))
+	For Each M As Map In L1
+		If id <> M.Get("id") Then
+			HRM.ResponseCode = 409
+			HRM.ResponseError = "Product Code already exist"
+			ReturnApiResponse
+			Return
+		End If
+	Next
+
+	If Not(data.ContainsKey("modified_date")) Then
+		data.Put("modified_date", WebApiUtils.CurrentDateTime)
+	End If
+				
+	For Each Key As String In data.Keys
+		M1.Put(Key, data.Get(Key))
+	Next
+	Main.WriteKVS("ProductsList", Main.ProductsList)
+				
+	HRM.ResponseCode = 200
+	HRM.ResponseMessage = "Product Updated"
+	HRM.ResponseObject = M1
 	ReturnApiResponse
 End Sub
 
@@ -269,14 +304,18 @@ Private Sub DeleteProduct (id As Long)
 	' #Desc = Delete Product by id
 	' #Elements = [":id"]
 
-	Dim Index As Int = Main.ProductList.IndexFromId(id)
+	Dim Index As Int = Main.ProductsList.IndexFromId(id)
 	If Index < 0 Then
 		HRM.ResponseCode = 404
-		HRM.ResponseError = "Product not found"
-	Else
-		Main.ProductList.Remove(Index)
-		HRM.ResponseCode = 200
-		If Main.KVS_ENABLED Then Main.WriteKVS("ProductList", Main.ProductList)
+		HRM.ResponseError = "Id not found"
+		ReturnApiResponse
+		Return
 	End If
+	
+	Main.ProductsList.Remove(Index)
+	Main.WriteKVS("ProductsList", Main.ProductsList)
+		
+	HRM.ResponseCode = 200
+	HRM.ResponseMessage = "Product Deleted"
 	ReturnApiResponse
 End Sub
