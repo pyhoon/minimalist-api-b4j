@@ -2,7 +2,7 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' MinimaList Controller
 ' Version 1.07
@@ -40,7 +40,7 @@ Public Sub Show
 
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", strHelp)
-	strMain = WebApiUtils.BuildHtml(strMain, Main.config)
+	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 	If Main.SimpleResponse.Enable Then
 		If Main.SimpleResponse.Format = "Map" Then
 			strJSFile = "webapi.search.simple.map.js"
@@ -59,12 +59,14 @@ Public Sub GetSearch
 	Dim CombineList As List
 	CombineList.Initialize
 	Dim L1 As List = Main.ProductsList.CopyList
+	
 	For Each M1 As Map In L1
 		Dim catid As Long = M1.Get("category_id")
 		Dim category_name As String = Main.CategoriesList.Find(catid).Get("category_name")
 		M1.Put("category_name", category_name)
 		CombineList.Add(M1)
 	Next
+	
 	HRM.ResponseCode = 200
 	HRM.ResponseData = CombineList
 	ReturnApiResponse
@@ -74,6 +76,7 @@ Public Sub PostSearch
 	Dim CombineList As List
 	CombineList.Initialize
 	Dim L1 As List = Main.ProductsList.CopyList
+	
 	For Each M1 As Map In L1
 		Dim catid As Long = M1.Get("category_id")
 		Dim category_name As String = Main.CategoriesList.Find(catid).Get("category_name")
@@ -83,9 +86,11 @@ Public Sub PostSearch
 
 	Dim SearchForText As String
 	Dim Data As Map = WebApiUtils.RequestData(Request)
+	
 	If Data.IsInitialized Then
 		SearchForText = Data.Get("keywords")
 	End If
+	
 	If SearchForText = "" Then
 		HRM.ResponseCode = 200
 		HRM.ResponseData = CombineList

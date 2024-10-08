@@ -2,7 +2,7 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' MinimaList Controller
 ' Version 1.07
@@ -26,13 +26,13 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	HRM.Initialize
 End Sub
 
-Private Sub ReturnBadRequest
-	WebApiUtils.ReturnBadRequest(Response)
-End Sub
-
 Private Sub ReturnApiResponse
 	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
+End Sub
+
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
 End Sub
 
 Private Sub ReturnMethodNotAllow
@@ -79,7 +79,7 @@ Private Sub RouteGet
 				Case ControllerIndex
 					GetProducts
 					Return
-				Case FirstIndex					
+				Case FirstIndex
 					If WebApiUtils.CheckInteger(FirstElement) = False Then
 						ReturnErrorUnprocessableEntity
 						Return
@@ -97,7 +97,7 @@ Private Sub RoutePost
 		Case "v2"
 			Select ElementLastIndex
 				Case ControllerIndex
-					PostProduct
+					PostProducts
 					Return
 			End Select
 	End Select
@@ -157,7 +157,7 @@ Private Sub GetProduct (id As Long)
 	ReturnApiResponse
 End Sub
 
-Private Sub PostProduct
+Private Sub PostProducts
 	' #Version = v2
 	' #Desc = Add a new Product
 	' #Body = {<br>&nbsp;"cat_id": category_id,<br>&nbsp;"code": "product_code",<br>&nbsp;"name": "product_name",<br>&nbsp;"price": product_price<br>}
@@ -169,14 +169,7 @@ Private Sub PostProduct
 		ReturnApiResponse
 		Return
 	End If
-	
-	If data.ContainsKey("") Then
-		HRM.ResponseCode = 400
-		HRM.ResponseError = "Invalid key value"
-		ReturnApiResponse
-		Return
-	End If
-	
+
 	' Make it compatible with Web API Client v1
 	If data.ContainsKey("cat_id") Then
 		data.Put("category_id", data.Get("cat_id"))
@@ -197,28 +190,41 @@ Private Sub PostProduct
 		data.Put("product_price", data.Get("price"))
 		data.Remove("price")
 	End If
+	
 	If data.ContainsKey("product_price") = False Then
 		data.Put("product_price", 0)
 	End If
 	
-	' Check conflict Product Code
-	Dim L1 As List = Main.ProductsList.FindAll(Array("product_code"), Array(data.Get("product_code")))
-	If L1.Size > 0 Then
+	' Check whether required keys are provided
+	Dim RequiredKeys As List = Array As String("category_id", "product_code", "product_name") ' "product_price" is optional
+	For Each requiredkey As String In RequiredKeys
+		If Not(data.ContainsKey(requiredkey)) Then
+			HRM.ResponseCode = 400
+			HRM.ResponseError = $"Key '${requiredkey}' not found"$
+			ReturnApiResponse
+			Return
+		End If
+	Next
+	
+	' Check conflict Category Name
+	Dim M1 As Map = Main.ProductsList.FindByKey("product_code", data.Get("product_code"))
+	If M1.Size > 0 Then
 		HRM.ResponseCode = 409
 		HRM.ResponseError = "Product Code already exist"
 		ReturnApiResponse
 		Return
 	End If
-	
+
 	If Not(data.ContainsKey("created_date")) Then
 		data.Put("created_date", WebApiUtils.CurrentDateTime)
 	End If
 
 	Main.ProductsList.Add(data)
 	Main.WriteKVS("ProductsList", Main.ProductsList)
-		
+
+	' Retrieve new row
 	HRM.ResponseCode = 201
-	HRM.ResponseMessage = "Product Created"
+	HRM.ResponseMessage = "Product created successfully"
 	HRM.ResponseObject = Main.ProductsList.Last
 	ReturnApiResponse
 End Sub
@@ -236,7 +242,7 @@ Private Sub PutProduct (id As Long)
 		ReturnApiResponse
 		Return
 	End If
-	
+
 	If data.ContainsKey("") Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid key value"
@@ -272,7 +278,7 @@ Private Sub PutProduct (id As Long)
 		data.Put("product_price", data.Get("price"))
 		data.Remove("price")
 	End If
-		
+
 	' Check conflict Product Code
 	Dim L1 As List = Main.ProductsList.FindAll(Array("product_code"), Array(data.Get("product_code")))
 	For Each M As Map In L1
@@ -283,18 +289,25 @@ Private Sub PutProduct (id As Long)
 			Return
 		End If
 	Next
-
+	
 	If Not(data.ContainsKey("modified_date")) Then
 		data.Put("modified_date", WebApiUtils.CurrentDateTime)
 	End If
 				
 	For Each Key As String In data.Keys
-		M1.Put(Key, data.Get(Key))
+		Select Key
+			Case "id", "category_id"
+				M1.Put(Key, data.Get(Key).As(Long))
+			Case "product_price"
+				M1.Put(Key, data.Get(Key).As(Double))
+			Case Else
+				M1.Put(Key, data.Get(Key))
+		End Select
 	Next
 	Main.WriteKVS("ProductsList", Main.ProductsList)
-				
+
 	HRM.ResponseCode = 200
-	HRM.ResponseMessage = "Product Updated"
+	HRM.ResponseMessage = "Product updated successfully"
 	HRM.ResponseObject = M1
 	ReturnApiResponse
 End Sub
@@ -303,7 +316,7 @@ Private Sub DeleteProduct (id As Long)
 	' #Version = v2
 	' #Desc = Delete Product by id
 	' #Elements = [":id"]
-
+	
 	Dim Index As Int = Main.ProductsList.IndexFromId(id)
 	If Index < 0 Then
 		HRM.ResponseCode = 404

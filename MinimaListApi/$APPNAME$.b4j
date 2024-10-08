@@ -28,7 +28,7 @@ NumberOfModules=10
 Version=10
 @EndOfDesignText@
 ' Product: 			MinimaList API Server
-' Version: 			2.07
+' Version: 			2.08
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			Open Source
@@ -52,12 +52,12 @@ Sub Process_Globals
 	Public SimpleResponse 			As SimpleResponse
 	Public KVS 						As KeyValueStore
 	Public KVS_ENABLED 				As Boolean
-	Public PRINT_FULL_REQUEST_URL	As Boolean
+	Public PRINT_FULL_REQUEST_URL	As Boolean = False
 	Public SHOW_API_ICON			As Boolean
 	Public SESSIONS_ENABLED 		As Boolean
 	Public COOKIES_ENABLED 			As Boolean
 	Public COOKIES_EXPIRATION 		As Long
-	Public Const VERSION 			As String = "2.07"
+	Public Const VERSION 			As String = "2.08"
 	'Public Const PREFIX 			As String = "MinimaList_API_v2_" ' use for cookies and sessions
 	
 	' ==============================================
@@ -70,27 +70,27 @@ End Sub
 
 ' <link>Open in browser|http://127.0.0.1:19800/web</link>
 Sub AppStart (Args() As String)
-	Server.Initialize("")
 	Config.Initialize
+	Server.Initialize("")
 	SimpleResponse.Initialize
 	
 	Dim sc As ServerConfiguration
 	sc.Initialize
-	sc.ServerPort = 8080
-	sc.SimpleResponse.Enable = True
-	sc.SimpleResponse.Format = "Auto"
 	sc.EnableCORS = True
+	#If DEBUG
 	sc.EnableHelp = True
+	#End If
+	#If Release
+	sc.EnableSSL = True
+	#End If
 	sc.Finalize
 	sc.ShowWelcomeText
-
+	
 	Server.Start
 	
 	ConfigureMinimaList
-	ConfigureControllers
 	ConfigureKeyValueStores
-
-	PRINT_FULL_REQUEST_URL = True
+	If sc.EnableHelp Then ConfigureControllers
 	StartMessageLoop
 End Sub
 

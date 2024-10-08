@@ -2,7 +2,7 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' MinimaList Controller
 ' Version 1.07
@@ -30,13 +30,13 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	HRM.Initialize
 End Sub
 
-Private Sub ReturnBadRequest
-	WebApiUtils.ReturnBadRequest(Response)
-End Sub
-
 Private Sub ReturnApiResponse
 	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
+End Sub
+
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
 End Sub
 
 Private Sub ReturnMethodNotAllow
@@ -53,6 +53,7 @@ Private Sub ReturnErrorUnprocessableEntity
 	WebApiUtils.ReturnErrorUnprocessableEntity(Response)
 End Sub
 
+' API Router
 Public Sub RouteApi
 	Method = Request.Method.ToUpperCase
 	Elements = WebApiUtils.GetUriElements(Request.RequestURI)
@@ -106,11 +107,9 @@ Private Sub GetFindCategory (keyword As String, value As String)
 	' #Desc = Find Category by name
 	' #Elements = ["category", ":keyword", ":value"]
 
-	Dim L1 As List
-	L1.Initialize
 	Select keyword
 		Case "category_name", "name"
-			L1 = Main.CategoriesList.FindAll(Array("category_name"), Array As String(value))
+			Dim L1 As List = Main.CategoriesList.FindAll(Array("category_name"), Array As String(value))
 			HRM.ResponseCode = 200
 			HRM.ResponseData = L1
 			ReturnApiResponse
@@ -144,7 +143,7 @@ Private Sub GetFindProduct (keyword As String, value As String)
 				L1 = Main.ProductsList.FindAll(Array("category_id"), Array As Long(cid))
 				HRM.ResponseCode = 200
 				HRM.ResponseData = L1
-				ReturnApiResponse				
+				ReturnApiResponse
 			Else
 				ReturnErrorUnprocessableEntity
 			End If

@@ -2,7 +2,7 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' MinimaList Controller
 ' Version 1.07
@@ -26,13 +26,13 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	HRM.Initialize
 End Sub
 
-Private Sub ReturnBadRequest
-	WebApiUtils.ReturnBadRequest(Response)
-End Sub
-
 Private Sub ReturnApiResponse
 	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
+End Sub
+
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
 End Sub
 
 Private Sub ReturnMethodNotAllow
@@ -121,7 +121,7 @@ Private Sub RoutePost
 		Case "v2"
 			Select ElementLastIndex
 				Case ControllerIndex
-					PostCategory
+					PostCategories
 					Return
 			End Select
 	End Select
@@ -164,8 +164,8 @@ End Sub
 
 Private Sub GetCategories
 	' #Version = v2
-	' #Desc = Read all Categories
-	
+	' #Desc = Read all items in Categories
+
 	HRM.ResponseCode = 200
 	HRM.ResponseData = Main.CategoriesList.List
 	ReturnApiResponse
@@ -173,7 +173,7 @@ End Sub
 
 Private Sub GetCategory (id As Long)
 	' #Version = v2
-	' #Desc = Read one Category by id
+	' #Desc = Read one item in Category by id
 	' #Elements = [":id"]
 	
 	Dim M1 As Map = Main.CategoriesList.Find(id)
@@ -186,11 +186,11 @@ Private Sub GetCategory (id As Long)
 	ReturnApiResponse
 End Sub
 
-Private Sub PostCategory
+Private Sub PostCategories
 	' #Version = v2
-	' #Desc = Add a new Category
+	' #Desc = Add a new item into Categories
 	' #Body = {<br>&nbsp;"name": "category_name"<br>}
-
+	
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -213,23 +213,23 @@ Private Sub PostCategory
 	End If
 	
 	' Check conflict Category Name
-	Dim L1 As List = Main.CategoriesList.FindAll(Array("category_name"), Array(data.Get("category_name")))
-	If L1.Size > 0 Then
+	Dim M1 As Map = Main.CategoriesList.FindByKey("category_name", data.Get("category_name"))
+	If M1.Size > 0 Then
 		HRM.ResponseCode = 409
 		HRM.ResponseError = "Category Name already exist"
 		ReturnApiResponse
 		Return
 	End If
-		
+	
 	If Not(data.ContainsKey("created_date")) Then
 		data.Put("created_date", WebApiUtils.CurrentDateTime)
 	End If
-		
+	
 	Main.CategoriesList.Add(data)
-	Main.WriteKVS("CategoriesList", Main.CategoriesList)
-		
+	If Main.KVS_ENABLED Then Main.WriteKVS("CategoriesList", Main.CategoriesList)
+	
 	HRM.ResponseCode = 201
-	HRM.ResponseMessage = "Category Created"
+	HRM.ResponseMessage = "Category created successfully"
 	HRM.ResponseObject = Main.CategoriesList.Last
 	ReturnApiResponse
 End Sub
@@ -283,12 +283,17 @@ Private Sub PutCategory (id As Long)
 	If Not(data.ContainsKey("modified_date")) Then
 		data.Put("modified_date", WebApiUtils.CurrentDateTime)
 	End If
-		
+	
 	For Each Key As String In data.Keys
-		M1.Put(Key, data.Get(Key))
+		Select Key
+			Case "id"
+				M1.Put(Key, data.Get(Key).As(Long))
+			Case Else
+				M1.Put(Key, data.Get(Key))
+		End Select
 	Next
 	Main.WriteKVS("CategoriesList", Main.CategoriesList)
-				
+	
 	HRM.ResponseCode = 200
 	HRM.ResponseMessage = "Category Updated"
 	HRM.ResponseObject = M1

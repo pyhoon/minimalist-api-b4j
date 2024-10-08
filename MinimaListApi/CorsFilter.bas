@@ -2,7 +2,7 @@
 Group=Filters
 ModulesStructureVersion=1
 Type=Class
-Version=9.1
+Version=10
 @EndOfDesignText@
 ' Cross-Origin Resource Sharing (CORS) Filter class
 Sub Class_Globals
@@ -22,9 +22,9 @@ End Sub
 'End Sub
 
 Public Sub AddToServer (ServerObject As Server)
-    Dim joServerWrapper As JavaObject = ServerObject
-    Dim joMe As JavaObject = Me
-    joMe.RunMethod("addFilter", Array As Object(joServerWrapper.GetField("context"), cPath, cSettings))
+	Dim joServerWrapper As JavaObject = ServerObject
+	Dim joMe As JavaObject = Me
+	joMe.RunMethod("addFilter", Array As Object(joServerWrapper.GetField("context"), cPath, cSettings))
 End Sub
 
 #If JAVA
