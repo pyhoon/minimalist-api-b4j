@@ -62,7 +62,7 @@ Sub Process_Globals
 End Sub
 
 ' <link>Open in browser|http://127.0.0.1:8080</link>
-' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/project-template-web-minimalist-api-server.160679/)</link> | <link>GitHub|https://github.com/pyhoon/minimalist-api-b4j</link>
+' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/project-template-web-minimalist-api-server.160679/</link> | <link>GitHub|https://github.com/pyhoon/minimalist-api-b4j</link>
 Sub AppStart (Args() As String)
 	App.Initialize
 	App.LoadConfig
