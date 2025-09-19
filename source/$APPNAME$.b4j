@@ -1,0 +1,125 @@
+﻿AppType=StandardJava
+Build1=MinimaList,b4j.minimalist.api,hu2_acceptall
+File1=category.html
+File2=config.example
+File3=help.html
+File4=index.html
+File5=main.html
+FileGroup1=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+Group=App
+Library1=endsmeet
+Library2=jcore
+Library3=minimalistutils
+Library4=webapiutils
+Library5=keyvaluestore
+Module1=CategoriesApiHandler
+Module2=CategoriesWebHandler
+Module3=FindApiHandler
+Module4=HelpHandler
+Module5=HttpsFilter
+Module6=IndexWebHandler
+Module7=JavaScript
+Module8=ProductsApiHandler
+NumberOfFiles=5
+NumberOfLibraries=5
+NumberOfModules=8
+Version=10.3
+@EndOfDesignText@
+#Region Project Attributes
+' Product: MinimaList API Server
+' Version: 3.00
+' License: MIT License
+' Developer: Poon Yip Hoon (Aeric)
+#Macro: Title, Objects, ide://run?file=%WINDIR%\SysWOW64\explorer.exe&args=%PROJECT%\Objects
+#Macro: Title, SeedData, ide://goto?Module=IndexWebHandler&Sub=SeedData
+'#Macro: Title, AddLibs, ide://run?file=%JAVABIN%\java.exe&args=-jar&args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&args=%PROJECT%&args=False
+'#Macro: Title, Backup, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=%PROJECT_NAME%_2025-09-19_1500.zip&args=Files&args=Objects\www&args=Objects\config.*&args=Objects\LICENSE&args=*.bas&args=*.b4j&args=*.b4j.meta&args=libs.json
+'#Macro: Title, Deploy, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&args=-cMf&args=Publish.zip&args=www&args=*.jar&args=*.ini
+#CommandLineArgs:
+#MergeLibraries: True
+#End Region
+
+Sub Process_Globals
+	Public App 					As EndsMeet
+	Private JS 					As JavaScript
+	Public KVS 					As KeyValueStore
+	Public KVS_ENABLED 			As Boolean
+	Public CategoriesList 		As MinimaList
+	Public ProductsList 		As MinimaList
+	Public Const COLOR_RED 		As Int = -65536
+	Public Const COLOR_BLUE 	As Int = -16776961
+	Public Const VERSION 		As String = "3.00"
+End Sub
+
+' <link>Open in browser|http://127.0.0.1:8080</link>
+' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/project-template-web-minimalist-api-server.160679/)</link> | <link>GitHub|https://github.com/pyhoon/minimalist-api-b4j</link>
+Sub AppStart (Args() As String)
+	App.Initialize
+	App.LoadConfig
+	App.Get("", "IndexWebHandler")
+	App.Get("/help", "HelpHandler")
+	App.Get("/categories", "CategoriesWebHandler")
+	App.Get("/api/categories", "CategoriesApiHandler")
+	App.Get("/api/categories/*", "CategoriesApiHandler")
+	App.Post("/api/categories", "CategoriesApiHandler")
+	App.Put("/api/categories/*", "CategoriesApiHandler")
+	App.Delete("/api/categories/*", "CategoriesApiHandler")
+	App.Get("/api/products", "ProductsApiHandler")
+	App.Get("/api/products/*", "ProductsApiHandler")
+	App.Post("/api/products", "ProductsApiHandler")
+	App.Put("/api/products/*", "ProductsApiHandler")
+	App.Delete("/api/products/*", "ProductsApiHandler")
+	App.Get("/api/find", "FindApiHandler")
+	App.Get("/api/find/products-by-category_id/*", "FindApiHandler")
+	App.Post("/api/find", "FindApiHandler")
+
+	Dim Api As ApiSettings = App.api
+	Api.EnableHelp = True
+	Api.OrderedKeys = True
+	App.LogEnabled = True
+	#If Release
+	App.RedirectToHttps = True
+	#End If
+
+	App.Start
+	App.LogStartupMessage
+	App.ctx.Put("VERSION", VERSION)
+	
+	Log($"App version: ${VERSION}"$)
+	Log($"Open the following URL from your web browser"$)
+	Log(App.ServerUrl)
+
+	JS.Initialize
+	JS.CreateJSFiles
+	
+	CategoriesList.Initialize
+	ProductsList.Initialize
+	
+	KVS.Initialize(File.DirApp, "kvs.dat")
+	KVS_ENABLED = True
+	Log("KeyValueStore is enabled")
+	CategoriesList.List = KVS.GetDefault("CategoriesList", CategoriesList.List)
+	ProductsList.List = KVS.GetDefault("ProductsList", ProductsList.List)
+	StartMessageLoop
+End Sub
+
+' Write MinimaList to KeyValueStore
+Public Sub WriteKVS (List As String, M As MinimaList)
+	If KVS_ENABLED Then
+		KVS.Put(List, M.List)
+	End If
+End Sub
+
+Public Sub ReturnHelpElement As String
+	Dim Api As ApiSettings = App.api
+	If Api.EnableHelp = False Then
+		Return ""
+	End If
+	Return $"${CRLF & TAB & TAB}<li class="nav-item mt-1 ml-3">
+${TAB & TAB & TAB}<a class="nav-link font-weight-bold text-dark mr-3" href="${App.ServerUrl}/help"><i class="fas fa-cog mr-2" title="API"></i>API</a>
+${TAB & TAB}</li>"$
+End Sub
