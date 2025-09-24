@@ -5,7 +5,7 @@ Type=Class
 Version=10.3
 @EndOfDesignText@
 'Api Handler class
-'Version 5.30
+'Version 5.40
 Sub Class_Globals
 	Private App As EndsMeet
 	Private Request As ServletRequest
@@ -20,7 +20,7 @@ End Sub
 Public Sub Initialize
 	App = Main.app
 	HRM.Initialize
-	HRM = App.SetApiMessage(HRM, App.api)
+	Main.SetApiMessage(HRM)
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)

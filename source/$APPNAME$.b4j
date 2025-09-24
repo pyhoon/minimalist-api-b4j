@@ -52,6 +52,7 @@ Version=10.3
 Sub Process_Globals
 	Public App 					As EndsMeet
 	Private JS 					As JavaScript
+	Private Api 				As ApiSettings
 	Public KVS 					As KeyValueStore
 	Public KVS_ENABLED 			As Boolean
 	Public CategoriesList 		As MinimaList
@@ -66,6 +67,16 @@ End Sub
 Sub AppStart (Args() As String)
 	App.Initialize
 	App.LoadConfig
+	App.LogEnabled = True
+	#If Release
+	App.RedirectToHttps = True
+	#End If
+
+	Api = App.api
+	#If Debug
+	Api.EnableHelp = True
+	#End If
+	
 	App.Get("", "IndexWebHandler")
 	App.Get("/help", "HelpHandler")
 	App.Get("/categories", "CategoriesWebHandler")
@@ -83,18 +94,9 @@ Sub AppStart (Args() As String)
 	App.Get("/api/find/products-by-category_id/*", "FindApiHandler")
 	App.Post("/api/find", "FindApiHandler")
 
-	Dim Api As ApiSettings = App.api
-	Api.EnableHelp = True
-	Api.OrderedKeys = True
-	App.LogEnabled = True
-	#If Release
-	App.RedirectToHttps = True
-	#End If
-
 	App.Start
 	App.LogStartupMessage
 	App.ctx.Put("VERSION", VERSION)
-	
 	Log($"App version: ${VERSION}"$)
 	Log($"Open the following URL from your web browser"$)
 	Log(App.ServerUrl)
@@ -111,6 +113,14 @@ Sub AppStart (Args() As String)
 	CategoriesList.List = KVS.GetDefault("CategoriesList", CategoriesList.List)
 	ProductsList.List = KVS.GetDefault("ProductsList", ProductsList.List)
 	StartMessageLoop
+End Sub
+
+' Set global ApiSettings from Main to HttpResponseMessage
+Public Sub SetApiMessage (Message As HttpResponseMessage)
+	Message.VerboseMode = Api.VerboseMode
+	Message.OrderedKeys = Api.OrderedKeys
+	Message.ContentType = Api.ContentType
+	Message.PayloadType = Api.PayloadType
 End Sub
 
 ' Write MinimaList to KeyValueStore

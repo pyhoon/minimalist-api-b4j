@@ -37,7 +37,7 @@ Version=10.3
 #Macro: Title, Objects, ide://run?file=%WINDIR%\SysWOW64\explorer.exe&args=%PROJECT%\Objects
 #Macro: Title, SeedData, ide://goto?Module=IndexWebHandler&Sub=SeedData
 '#Macro: Title, AddLibs, ide://run?file=%JAVABIN%\java.exe&args=-jar&args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&args=%PROJECT%&args=False
-'#Macro: Title, Backup, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=%PROJECT_NAME%_2025-09-17_1821.zip&args=Files&args=Objects\www&args=Objects\config.*&args=Objects\LICENSE&args=*.bas&args=*.b4j&args=*.b4j.meta&args=libs.json
+'#Macro: Title, Backup, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=%PROJECT_NAME%_2025-09-25_0021.zip&args=Files&args=Objects\www&args=Objects\config.*&args=Objects\LICENSE&args=*.bas&args=*.b4j&args=*.b4j.meta&args=libs.json
 '#Macro: Title, Deploy, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&args=-cMf&args=Publish.zip&args=www&args=*.jar&args=*.ini
 #CommandLineArgs:
 #MergeLibraries: True
@@ -46,6 +46,7 @@ Version=10.3
 Sub Process_Globals
 	Public App 					As EndsMeet
 	Private JS 					As JavaScript
+	Private Api 				As ApiSettings
 	Public KVS 					As KeyValueStore
 	Public KVS_ENABLED 			As Boolean
 	Public CategoriesList 		As MinimaList
@@ -56,10 +57,20 @@ Sub Process_Globals
 End Sub
 
 ' <link>Open in browser|http://127.0.0.1:8080</link>
-' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/project-template-web-minimalist-api-server.160679/)</link> | <link>GitHub|https://github.com/pyhoon/minimalist-api-b4j</link>
+' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/project-template-web-minimalist-api-server.160679/</link> | <link>GitHub|https://github.com/pyhoon/minimalist-api-b4j</link>
 Sub AppStart (Args() As String)
 	App.Initialize
 	App.LoadConfig
+	App.LogEnabled = True
+	#If Release
+	App.RedirectToHttps = True
+	#End If
+
+	Api = App.api
+	#If Debug
+	Api.EnableHelp = True
+	#End If
+	
 	App.Get("", "IndexWebHandler")
 	App.Get("/help", "HelpHandler")
 	App.Get("/categories", "CategoriesWebHandler")
@@ -77,18 +88,9 @@ Sub AppStart (Args() As String)
 	App.Get("/api/find/products-by-category_id/*", "FindApiHandler")
 	App.Post("/api/find", "FindApiHandler")
 
-	Dim Api As ApiSettings = App.api
-	Api.EnableHelp = True
-	Api.OrderedKeys = True
-	App.LogEnabled = True
-	#If Release
-	App.RedirectToHttps = True
-	#End If
-
 	App.Start
 	App.LogStartupMessage
 	App.ctx.Put("VERSION", VERSION)
-	
 	Log($"App version: ${VERSION}"$)
 	Log($"Open the following URL from your web browser"$)
 	Log(App.ServerUrl)
@@ -105,6 +107,14 @@ Sub AppStart (Args() As String)
 	CategoriesList.List = KVS.GetDefault("CategoriesList", CategoriesList.List)
 	ProductsList.List = KVS.GetDefault("ProductsList", ProductsList.List)
 	StartMessageLoop
+End Sub
+
+' Set global ApiSettings from Main to HttpResponseMessage
+Public Sub SetApiMessage (Message As HttpResponseMessage)
+	Message.VerboseMode = Api.VerboseMode
+	Message.OrderedKeys = Api.OrderedKeys
+	Message.ContentType = Api.ContentType
+	Message.PayloadType = Api.PayloadType
 End Sub
 
 ' Write MinimaList to KeyValueStore
