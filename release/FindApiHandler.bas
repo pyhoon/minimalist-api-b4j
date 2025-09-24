@@ -5,7 +5,7 @@ Type=Class
 Version=10.3
 @EndOfDesignText@
 'Api Handler class
-'Version 5.40
+'Version 3.00
 Sub Class_Globals
 	Private App As EndsMeet
 	Private Request As ServletRequest
