@@ -1,0 +1,17 @@
+# Product: 		MinimaList API Server (based on Pakai Server 4.00)
+# Version: 		2.40
+# License:		MIT License
+# Developer:	Poon Yip Hoon (Aeric)
+# Donation:		https://paypal.me/aeric80/
+# GitHub:		https://github.com/pyhoon/minimalist-api-b4j
+
+# Thanks to Erel, Anywhere Software for the great products and B4X community for encouragement and supports.
+# Please consider to donate to me so I can continue to improve this project
+# Lines starting with '#' are comments.
+# Backslash character at the end of line means that the command continues in the next line.
+
+# Define App Constants
+HOME_TITLE=MINIMALIST SERVER
+APP_TITLE=MinimaList
+APP_TRADEMARK=MINIMALIST
+APP_COPYRIGHT=Copyright Computerise System Solutions 2025

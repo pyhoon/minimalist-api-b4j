@@ -1,0 +1,16 @@
+{
+    "Libraries": [
+        {
+            "Name": "MinimaListUtils (1.80).b4xlib",
+            "Platform": "B4X",
+            "Version": 1.80,
+            "Link": "https://github.com/pyhoon/MinimaListUtils-B4X/releases/download/v1.80/MinimaListUtils.1.80.b4xlib"
+        },
+        {
+            "Name": "WebApiUtils (4.50).b4xlib",
+            "Platform": "B4J",
+            "Version": 4.50,
+            "Link": "https://github.com/pyhoon/WebApiUtils-B4J/releases/download/v4.50/WebApiUtils.4.50.b4xlib"
+        }
+    ]
+}
