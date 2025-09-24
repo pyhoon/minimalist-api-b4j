@@ -1,21 +1,20 @@
-# minimalist-api-b4j
+# MinimaList API Server
 
-Version: 2.08
+Version: 3.00
 
 Build REST API Server with MinimaList using B4X project template
 
 ---
 
 **Depends on following libraries:** 
+- [EndsMeet.b4xlib](https://github.com/pyhoon/EndsMeet)
 - [WebApiUtils.b4xlib](https://github.com/pyhoon/WebApiUtils-B4J)
 - [MinimaListUtils.b4xlib](https://github.com/pyhoon/MinimaListUtils-B4X)
-- [MinimaListController.jar](https://github.com/pyhoon/MinimaListController-B4J) (optional)
-
-*To connect to SQL database, please check https://github.com/pyhoon/webapi-2-b4j*
+- KeyValueStore
 
 ## Features
-- Similar to Web API Server 2 but use MinimaListUtils instead of MiniORMUtils library.
-- **MinimaList** is a library for storing key-value or Map into List.
+- Similar to Pakai Server but use MinimaListUtils instead of MiniORMUtils library.
+- **MinimaList** is a library for storing key-value pairs or Map into List.
 - This API server can run without an SQL database.
 - Optionally, MinimaList can be persisted using KeyValueStore library.
 - Clients
@@ -25,10 +24,6 @@ Build REST API Server with MinimaList using B4X project template
 ### Code Example
 ```basic
 Private Sub GetCategory (id As Long)
-	' #Version = v2
-	' #Desc = Read one Category by id
-	' #Elements = [":id"]
-	
 	Dim M1 As Map = Main.CategoryList.Find(id)
 	If M1.Size > 0 Then
 		HRM.ResponseCode = 200
@@ -40,7 +35,7 @@ Private Sub GetCategory (id As Long)
 End Sub
 ```
 To seed dummy data in MinimaList API Server, browse to:
-http://127.0.0.1:19800/web/?seed=1
+http://127.0.0.1:8080/?seed=1
 
 **Support this project**
 
