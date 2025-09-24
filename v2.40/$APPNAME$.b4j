@@ -34,8 +34,8 @@ Version=10.3
 ' Version: 				2.40
 ' License:				MIT License
 ' Developer:			Poon Yip Hoon (Aeric) (https://www.b4x.com/android/forum/members/aeric.74499/)
+' GitHub:				https://github.com/pyhoon/minimalist-api-b4j/tree/main/v2.40
 ' Donation:				PayPal (https://paypal.me/aeric80/)
-' GitHub:				https://github.com/pyhoon/minimalist-api-b4j
 ' AppStart: 			ide://goto?Module=Main&Sub=AppStart
 ' Configurable: 		ide://goto?Module=Main&Sub=Configurable
 ' Objects folder: 		ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
@@ -69,7 +69,7 @@ Sub AppStart (Args() As String)
 	srvr.AddHandler($"/${conf.ApiName}/products/*"$, "ProductsApiHandler", False) 		' API handler
 	srvr.AddHandler($"/${conf.ApiName}/find/*"$, "FindApiHandler", False) 				' API handler
 	srvr.Start
-	Log($"Inti server (version = ${conf.Version}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirected to port ${srvr.SslPort})"$, "")}"$)
+	Log($"MinimaList server (version = ${conf.Version}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirected to port ${srvr.SslPort})"$, "")}"$)
 	InitMinimaList
 	StartMessageLoop
 End Sub
